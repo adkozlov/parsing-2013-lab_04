@@ -1,15 +1,16 @@
 @header {
+    ru.ifmo.ctddev.kozlov
     BooleanExpressions
     E
 }
 
 @terminals {
-    | OR_OPERATOR
-    & AND_OPERATOR
-    ! NOT_OPERATOR
-    ( LEFT_PARENTHESIS
-    ) RIGHT_PARENTHESIS
-    v VARIABLE { boolean value }
+    '|' OR_OPERATOR
+    '&' AND_OPERATOR
+    '!' NOT_OPERATOR
+    '(' LEFT_PARENTHESIS
+    ')' RIGHT_PARENTHESIS
+    'bool' VARIABLE { boolean value }
 }
 
 @nonTerminals {

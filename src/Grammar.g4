@@ -14,7 +14,6 @@ WS
         |   '\t'
         |   '\n'
         )+
-        {skip();}
     ;
 
 LEFT_BRACE
@@ -71,15 +70,11 @@ file
     ;
 
 sections
-    :   header
+    :   header terminals
     ;
 
 header
-    :   SECTION_START 'header' WS LEFT_BRACE WS ( packageName WS )? className WS startNonTerminal WS RIGHT_BRACE
-    {
-        System.out.println($className.text);
-        System.out.println($startNonTerminal.text);
-    }
+    :   SECTION_START 'header' WS LEFT_BRACE WS ( packageName WS )? className WS startNonTerminal WS RIGHT_BRACE WS
     ;
 
 lowerId
@@ -103,74 +98,41 @@ className
     ;
 
 startNonTerminal
-    :  nonTerminalName
+    :   nonTerminalId
     ;
 
-description
-    :   lowerId
-    |   upperId
-    ;
-
-nonTerminals
-    :   SECTION_START 'nonTerminals' WS LEFT_BRACE WS ( nonTerminal WS )+ RIGHT_BRACE
-    ;
-
-nonTerminalName
+nonTerminalId
     :   upperId APOSTROPHE*
     ;
 
-nonTerminal
-    :   nonTerminalName WS description ( WS attributes )?
-    ;
-
-attributes
-    :   LEFT_BRACE WS attribute ( COMMA WS attribute )* WS RIGHT_BRACE
-    ;
-
-attribute
-    :   type description
-    ;
-
-type
-    :   'boolean'
-    ;
-
 terminals
-    :   {
-            System.out.println("terminals");
-        }
-        SECTION_START 'terminals' WS LEFT_BRACE WS ( terminal WS )+ RIGHT_BRACE
+    :   SECTION_START 'terminals' WS LEFT_BRACE WS terminal+ RIGHT_BRACE WS
     ;
 
 terminal
-    :   terminalName WS description ( WS attributes )?
-        {
-            System.out.println("1" + $terminalName.text);
-            System.out.println("2" + $description.text);
-            System.out.println("3" + $attributes.text);
-        }
+    :   TerminalId WS description ( WS LEFT_BRACE WS attributes RIGHT_BRACE )? WS
     ;
 
-terminalName
-    :   ( ~( ' ' |' \t' | '\n' ) )+
+TerminalId
+    :  '\'' ( ~( '\'' | ' ' | '\t' | '\n' ) )* '\''
     ;
 
-rules
-    :   SECTION_START 'rules' WS LEFT_BRACE WS ( implementation WS )+ RIGHT_BRACE
+description
+    :   lowerId | upperId
     ;
 
-implementation
-    :   nonTerminalName WS ARROW WS ( ( nonTerminalName | terminalName ) WS? ) ( WS definition )?
+attributes
+    :   attribute
+    {
+        System.out.println($attribute.text);
+    }
+        ( COMMA WS attribute )* WS
     ;
 
-definition
-    :   LEFT_BRACE WS expressions RIGHT_BRACE
+attribute
+    :   Type WS lowerId
     ;
 
-expressions
-    :   ( expression WS )*
-    ;
-
-expression
-    :   ( ~WS )*
+Type
+    :   'boolean'
     ;
