@@ -1,11 +1,23 @@
 grammar Grammar;
 
 @header {
-
+    import java.util.*;
 }
 
 @members {
 
+    private List<Rule> rules = new ArrayList<>();
+    private String start = null;
+
+    private List<List<String>> actions = new ArrayList<>();
+
+    public Grammar getGrammar() {
+        return new Grammar(rules.toArray(new Rule[0]), start);
+    }
+
+    public List<List<String>> getActions() {
+        return actions;
+    }
 }
 
 WS
@@ -65,12 +77,12 @@ ARROW
     :   '->'
     ;
 
-file
-    :   WS? header WS terminals WS nonTerminals WS rules WS?
+EQUALS
+    :   '='
     ;
 
-header
-    :   SECTION_START 'header' WS LEFT_BRACE WS ( 'package=' packageName WS )? 'class=' className WS 'start='startNonTerminal WS RIGHT_BRACE
+file
+    :   WS? terminals WS nonTerminals WS start WS rules WS?
     ;
 
 lowerId
@@ -85,24 +97,12 @@ idSuffix
     :   ( letter | Digit | UNDERLINE )*
     ;
 
-packageName
-    :   lowerId ( POINT lowerId )*
-    ;
-
-className
-    :  upperId
-    ;
-
-startNonTerminal
-    :   nonTerminalId
-    ;
-
-nonTerminalId
-    :   upperId APOSTROPHE*
+TERMINALS
+    :   'terminals'
     ;
 
 terminals
-    :   SECTION_START 'terminals' WS LEFT_BRACE WS terminal+ RIGHT_BRACE
+    :   SECTION_START TERMINALS WS LEFT_BRACE WS terminal+ RIGHT_BRACE
     ;
 
 terminal
@@ -132,24 +132,97 @@ Type
     |   'char'
     ;
 
+NON_TERMINALS
+    :   'nonTerminals'
+    ;
+
 nonTerminals
-    :   SECTION_START 'nonTerminals' WS LEFT_BRACE WS nonTerminal+ RIGHT_BRACE
+    :   SECTION_START NON_TERMINALS WS LEFT_BRACE WS nonTerminal+ RIGHT_BRACE
+    ;
+
+nonTerminalId
+    :   upperId APOSTROPHE*
     ;
 
 nonTerminal
     :   nonTerminalId WS description ( WS LEFT_BRACE WS attributes RIGHT_BRACE )? WS
     ;
 
+START
+    :   'start'
+    ;
+
+start
+    :   SECTION_START START WS EQUALS WS nonTerminalId
+    {
+        start = $nonTerminalId.text;
+    }
+    ;
+
+RULES
+    :   'rules'
+    ;
+
 rules
-    :   SECTION_START 'rules' WS LEFT_BRACE WS ( ruleSignature ( WS ruleImplementation )? WS )+ RIGHT_BRACE
+    :   SECTION_START RULES WS LEFT_BRACE WS
+    (
+        ruleSignature WS
+        {
+            rules.add($ruleSignature.rule);
+        }
+        ruleImplementation WS
+        {
+            actions.add($ruleImplementation.ruleActions);
+        }
+    )+ RIGHT_BRACE
     ;
 
-ruleSignature
-    :   nonTerminalId WS '->' ( WS ( nonTerminalId | TerminalId ) )*
+ruleSignature returns [Rule rule]
+@init {
+    String leftSide = null;
+    List<String> rightSide = new ArrayList<>();
+}
+    :   nonTerminalId WS ARROW
+    {
+        leftSide = $nonTerminalId.text;
+    }
+    ( WS rightSideRuleToken
+        {
+            if ($rightSideRuleToken.text.startsWith("\'")) {
+                rightSide.add($rightSideRuleToken.text.replaceAll("\'", ""));
+            } else {
+                rightSide.add($rightSideRuleToken.text);
+            }
+        }
+    )*
+    {
+        $rule = new Rule(leftSide, rightSide.toArray(new String[0]));
+    }
     ;
 
-ruleImplementation
-    :   LEFT_BRACE WS Expression ( COMMA WS Expression )* WS RIGHT_BRACE
+rightSideRuleToken
+    :   nonTerminalId
+    |   TerminalId
+    ;
+
+ruleImplementation returns [List<String> ruleActions]
+@init {
+    $ruleActions = new ArrayList<>();
+}
+    :   LEFT_BRACE
+    ( WS Expression
+        {
+            if ($Expression.text != null) {
+                $ruleActions.add($Expression.text.replaceAll("\"", ""));
+            }
+        }
+    )?
+    ( COMMA WS Expression
+        {
+            $ruleActions.add($Expression.text.replaceAll("\"", ""));
+        }
+    )*
+    WS RIGHT_BRACE
     ;
 
 Expression

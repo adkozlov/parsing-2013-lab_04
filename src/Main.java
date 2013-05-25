@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.*;
 
 import java.io.FileInputStream;
+import java.util.List;
 
 public class Main {
 
@@ -23,7 +24,8 @@ public class Main {
             GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
             parser.file();
 
-            //Grammar grammar = null;
+            Grammar grammar = parser.getGrammar();
+            List<List<String>> a = parser.getActions();
             //new ParserGenerator(grammar).generate();
 
             System.out.printf(SUCCESS_MESSAGE, fileName);

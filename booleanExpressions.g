@@ -1,9 +1,3 @@
-@header {
-    package=ru.ifmo.ctddev.kozlov
-    class=BooleanExpressions
-    start=E
-}
-
 @terminals {
     '|' OR_OPERATOR
     '&' AND_OPERATOR
@@ -20,6 +14,8 @@
     T' TermContinuation { boolean value }
     X NegationOrVariableOrExpression { boolean value }
 }
+
+@start = E
 
 @rules {
     E -> T E' {
