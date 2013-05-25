@@ -14,6 +14,7 @@ WS
         |   '\t'
         |   '\n'
         )+
+        {skip();}
     ;
 
 LEFT_BRACE
@@ -36,7 +37,7 @@ UpperCase
     :   [A-Z]
     ;
 
-Letter
+letter
     :   LowerCase
     |   UpperCase
     ;
@@ -45,8 +46,12 @@ Digit
     :   [0-9]
     ;
 
-DOT
+POINT
     :   '.'
+    ;
+
+COMMA
+    :   ','
     ;
 
 APOSTROPHE
@@ -57,57 +62,115 @@ UNDERLINE
     :   '_'
     ;
 
+ARROW
+    :   '->'
+    ;
+
 file
-    :   WS? section+ WS?
+    :   WS? sections WS?
     ;
 
-section
-    :   SECTION_START SectionName WS LEFT_BRACE WS ( header | nonTerminals | terminals | rules ) WS RIGHT_BRACE WS
-    ;
-
-SectionName
-    :   'header'
-    |   'nonTerminals'
-    |   'terminals'
-    |   'rules'
+sections
+    :   header
     ;
 
 header
-    :   ( package WS )? name WS start
+    :   SECTION_START 'header' WS LEFT_BRACE WS ( packageName WS )? className WS startNonTerminal WS RIGHT_BRACE
+    {
+        System.out.println($className.text);
+        System.out.println($startNonTerminal.text);
+    }
     ;
 
 lowerId
-    :   lowerCase idSuffix
+    :   LowerCase idSuffix
     ;
 
 upperId
-    :   upperCase idSuffix
+    :   UpperCase idSuffix
     ;
 
 idSuffix
-    :   ( Letter | Digit | UNDERLINE )*
+    :   ( letter | Digit | UNDERLINE )*
     ;
 
-package
-    :   lowerId ( DOT lowerId )*
+packageName
+    :   lowerId ( POINT lowerId )*
     ;
 
-name
+className
     :  upperId
     ;
 
-start
+startNonTerminal
     :  nonTerminalName
     ;
 
+description
+    :   lowerId
+    |   upperId
+    ;
+
 nonTerminals
-    :   ( nonTerminal WS )+
+    :   SECTION_START 'nonTerminals' WS LEFT_BRACE WS ( nonTerminal WS )+ RIGHT_BRACE
+    ;
+
+nonTerminalName
+    :   upperId APOSTROPHE*
+    ;
+
+nonTerminal
+    :   nonTerminalName WS description ( WS attributes )?
+    ;
+
+attributes
+    :   LEFT_BRACE WS attribute ( COMMA WS attribute )* WS RIGHT_BRACE
+    ;
+
+attribute
+    :   type description
+    ;
+
+type
+    :   'boolean'
     ;
 
 terminals
-    :   ( terminal WS )+
+    :   {
+            System.out.println("terminals");
+        }
+        SECTION_START 'terminals' WS LEFT_BRACE WS ( terminal WS )+ RIGHT_BRACE
+    ;
+
+terminal
+    :   terminalName WS description ( WS attributes )?
+        {
+            System.out.println("1" + $terminalName.text);
+            System.out.println("2" + $description.text);
+            System.out.println("3" + $attributes.text);
+        }
+    ;
+
+terminalName
+    :   ( ~( ' ' |' \t' | '\n' ) )+
     ;
 
 rules
-    :   ( rule WS )+
+    :   SECTION_START 'rules' WS LEFT_BRACE WS ( implementation WS )+ RIGHT_BRACE
+    ;
+
+implementation
+    :   nonTerminalName WS ARROW WS ( ( nonTerminalName | terminalName ) WS? ) ( WS definition )?
+    ;
+
+definition
+    :   LEFT_BRACE WS expressions RIGHT_BRACE
+    ;
+
+expressions
+    :   ( expression WS )*
+    ;
+
+expression
+    :   ( ~WS )*
     ;

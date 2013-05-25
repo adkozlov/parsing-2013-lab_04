@@ -5,7 +5,6 @@
 
 @terminals {
     | OR_OPERATOR
-    ^ XOR_OPERATOR
     & AND_OPERATOR
     ! NOT_OPERATOR
     ( LEFT_PARENTHESIS
@@ -14,20 +13,19 @@
 }
 
 @nonTerminals {
-    E Disjunct { boolean value }
-    E' DisjunctContinuation { boolean value }
-    A Conjunct { boolean value }
-    A' ConjunctContinuation { boolean value }
-    B NegateMaybe { boolean value }
-    C VariableOrExpression { boolean value }
+    E Expression { boolean value }
+    E' ExpressionContinuation { boolean value }
+    T Term { boolean value }
+    T' TermContinuation { boolean value }
+    X VariableOrExpression { boolean value }
 }
 
 @rules {
-    E -> A E' {
+    E -> T E' {
         $0.value || $1.value
     }
 
-    E' -> | A E' {
+    E' -> | T E' {
         $1.value || $2.value
     }
 
@@ -35,31 +33,27 @@
         false
     }
 
-    A -> B A' {
+    T -> B T' {
         $0.value || $1.value
     }
 
-    A' -> | B A' {
+    T' -> | B T' {
         $1.value || $2.value
     }
 
-    A' -> {
+    T' -> {
         true
     }
 
-    B -> C {
-        $0.value
-    }
-
-    B -> !B {
+    X -> !X {
         !$1.value
     }
 
-    C -> v {
+    X -> v {
         $0.value
     }
 
-    C -> ( E ) {
+    X -> ( E ) {
         $1.value
     }
 }
