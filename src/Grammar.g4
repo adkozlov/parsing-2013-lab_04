@@ -66,15 +66,11 @@ ARROW
     ;
 
 file
-    :   WS? sections WS?
-    ;
-
-sections
-    :   header terminals
+    :   WS? header WS terminals WS nonTerminals WS rules WS?
     ;
 
 header
-    :   SECTION_START 'header' WS LEFT_BRACE WS ( packageName WS )? className WS startNonTerminal WS RIGHT_BRACE WS
+    :   SECTION_START 'header' WS LEFT_BRACE WS ( 'package=' packageName WS )? 'class=' className WS 'start='startNonTerminal WS RIGHT_BRACE
     ;
 
 lowerId
@@ -106,7 +102,7 @@ nonTerminalId
     ;
 
 terminals
-    :   SECTION_START 'terminals' WS LEFT_BRACE WS terminal+ RIGHT_BRACE WS
+    :   SECTION_START 'terminals' WS LEFT_BRACE WS terminal+ RIGHT_BRACE
     ;
 
 terminal
@@ -122,11 +118,7 @@ description
     ;
 
 attributes
-    :   attribute
-    {
-        System.out.println($attribute.text);
-    }
-        ( COMMA WS attribute )* WS
+    :   attribute ( COMMA WS attribute )* WS
     ;
 
 attribute
@@ -135,4 +127,31 @@ attribute
 
 Type
     :   'boolean'
+    |   'int'
+    |   'double'
+    |   'char'
+    ;
+
+nonTerminals
+    :   SECTION_START 'nonTerminals' WS LEFT_BRACE WS nonTerminal+ RIGHT_BRACE
+    ;
+
+nonTerminal
+    :   nonTerminalId WS description ( WS LEFT_BRACE WS attributes RIGHT_BRACE )? WS
+    ;
+
+rules
+    :   SECTION_START 'rules' WS LEFT_BRACE WS ( ruleSignature ( WS ruleImplementation )? WS )+ RIGHT_BRACE
+    ;
+
+ruleSignature
+    :   nonTerminalId WS '->' ( WS ( nonTerminalId | TerminalId ) )*
+    ;
+
+ruleImplementation
+    :   LEFT_BRACE WS Expression ( COMMA WS Expression )* WS RIGHT_BRACE
+    ;
+
+Expression
+    :   '\"' ( ~'\"' )+ '\"'
     ;
