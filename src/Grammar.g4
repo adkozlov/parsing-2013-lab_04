@@ -4,12 +4,21 @@ grammar Grammar;
     import java.util.*;
 }
 
+@rulecatch {
+    catch(RecognitionException e) {
+        throw new GrammarException(e.getMessage(), e.getCause());
+   }
+}
+
 @members {
 
     private List<Rule> rules = new ArrayList<>();
     private String start = null;
 
     private List<List<String>> actions = new ArrayList<>();
+    private Map<String, String> terminalsMap = new HashMap<>();
+    private Map<String, String> nonTerminalsMap = new HashMap<>();
+    private Map<String, List<Attribute>> attributesMap = new HashMap();
 
     public Grammar getGrammar() {
         return new Grammar(rules.toArray(new Rule[0]), start);
@@ -17,6 +26,10 @@ grammar Grammar;
 
     public List<List<String>> getActions() {
         return actions;
+    }
+
+    public Map<String, List<Attribute>> getAttributesMap() {
+        return attributesMap;
     }
 }
 
@@ -82,7 +95,7 @@ EQUALS
     ;
 
 file
-    :   WS? terminals WS nonTerminals WS start WS rules WS?
+    :   WS? terminals WS nonTerminals WS start WS rules WS? EOF
     ;
 
 lowerId
@@ -106,7 +119,21 @@ terminals
     ;
 
 terminal
-    :   TerminalId WS description ( WS LEFT_BRACE WS attributes RIGHT_BRACE )? WS
+@init {
+    String id = null;
+}
+    :   TerminalId WS description
+    {
+        id = $TerminalId.text.replaceAll("\'", "");
+        String desc = $description.text;
+
+        terminalsMap.put(id, desc);
+    }
+    ( WS LEFT_BRACE WS attributes RIGHT_BRACE
+        {
+            attributesMap.put(id, $attributes.attrs);
+        }
+    )? WS
     ;
 
 TerminalId
@@ -117,12 +144,26 @@ description
     :   lowerId | upperId
     ;
 
-attributes
-    :   attribute ( COMMA WS attribute )* WS
+attributes returns [List<Attribute> attrs]
+@init {
+    $attrs = new ArrayList<>();
+}
+    :   attribute
+    {
+        $attrs.add($attribute.attr);
+    }
+    ( COMMA WS attribute
+        {
+            $attrs.add($attribute.attr);
+        }
+    )* WS
     ;
 
-attribute
+attribute returns [Attribute attr]
     :   Type WS lowerId
+    {
+        $attr = new Attribute($Type.text, $lowerId.text);
+    }
     ;
 
 Type
@@ -145,7 +186,21 @@ nonTerminalId
     ;
 
 nonTerminal
-    :   nonTerminalId WS description ( WS LEFT_BRACE WS attributes RIGHT_BRACE )? WS
+@init {
+    String id = null;
+}
+    :   nonTerminalId WS description
+    {
+        id = $nonTerminalId.text;
+        String desc = $description.text;
+
+        nonTerminalsMap.put(id, desc);
+    }
+    ( WS LEFT_BRACE WS attributes RIGHT_BRACE
+        {
+            attributesMap.put(id, $attributes.attrs);
+        }
+    )? WS
     ;
 
 START
@@ -212,9 +267,7 @@ ruleImplementation returns [List<String> ruleActions]
     :   LEFT_BRACE
     ( WS Expression
         {
-            if ($Expression.text != null) {
-                $ruleActions.add($Expression.text.replaceAll("\"", ""));
-            }
+            $ruleActions.add($Expression.text.replaceAll("\"", ""));
         }
     )?
     ( COMMA WS Expression

@@ -1,4 +1,6 @@
 #!/bin/bash
 
-rm -f src/Grammar?*.*
-java -jar lib/antlr-4.0-complete.jar src/Grammar.g4
+cd src
+rm -f Grammar.tokens GrammarBaseListener.java GrammarLexer.java GrammarLexer.tokens GrammarListener.java GrammarParser.java
+java -jar ../lib/antlr-4.0-complete.jar Grammar.g4
+cd ..

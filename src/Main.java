@@ -2,6 +2,7 @@ import org.antlr.v4.runtime.*;
 
 import java.io.FileInputStream;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 
@@ -26,6 +27,7 @@ public class Main {
 
             Grammar grammar = parser.getGrammar();
             List<List<String>> a = parser.getActions();
+            Map<String, List<Attribute>> b = parser.getAttributesMap();
             //new ParserGenerator(grammar).generate();
 
             System.out.printf(SUCCESS_MESSAGE, fileName);
