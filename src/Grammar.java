@@ -2,30 +2,46 @@ import java.util.*;
 
 public class Grammar {
 
-    final private static String EOF = "$";
-    final private  List<Rule> rules;
+    final public static String EOF = "$";
+    protected final List<Rule> rules;
     final private String start;
 
     final private List<String> nonTerminals;
-    final private Map<String, Integer> nonTerminalIndices;
+    protected final Map<String, Integer> nonTerminalIndices;
 
-    final private List<Boolean> nullables = new ArrayList<>();
-    final private List<Set<String>> firsts = new ArrayList<>();
-    final private List<Set<String>> follows = new ArrayList<>();
+    final protected List<Boolean> nullables = new ArrayList<>();
+    final protected List<Set<String>> firsts = new ArrayList<>();
+    final protected List<Set<String>> follows = new ArrayList<>();
+
+    public List<String> getNonTerminals() {
+        return nonTerminals;
+    }
+
+    public List<Boolean> getNullables() {
+        return nullables;
+    }
+
+    public List<Set<String>> getFirsts() {
+        return firsts;
+    }
+
+    public List<Set<String>> getFollows() {
+        return follows;
+    }
 
     public Grammar(List<Rule> rules, String start) {
         this.rules = rules;
         this.start = start;
 
-        Set<String> leftSides = new HashSet<>();
+        Set<String> leftSides = new TreeSet<>();
         for (Rule rule : rules) {
             leftSides.add(rule.getLeftSide());
         }
         nonTerminals = new ArrayList<>(leftSides);
 
         nonTerminalIndices = new HashMap<>();
-        for (int i = 0; i < nonTerminals.size(); i++) {
-            nonTerminalIndices.put(nonTerminals.get(i), i);
+        for (String nonTerminal : nonTerminals) {
+            nonTerminalIndices.put(nonTerminal, nonTerminalIndices.size());
         }
 
         fillNullables();
@@ -147,10 +163,7 @@ public class Grammar {
         Set<String> result = new HashSet<>();
         for (ListIterator<String> iterator = rightSide.listIterator(begin); iterator.hasNext();) {
             String symbol = iterator.next();
-
-            for (String string : first(symbol)) {
-                result.add(string);
-            }
+            result.addAll(first(symbol));
 
             if (!isNullable(symbol)) {
                 isNullable = false;
@@ -159,15 +172,13 @@ public class Grammar {
         }
 
         if (isNullable) {
-            for (String symbol : follow) {
-                result.add(symbol);
-            }
+            result.addAll(follow);
         }
 
         return result;
     }
 
-    private Set<String> first(String symbol) {
+    protected Set<String> first(String symbol) {
         if (!isTerminal(symbol)) {
             return firsts.get(nonTerminalIndices.get(symbol));
         } else {

@@ -20,11 +20,11 @@ grammar Grammar;
     private Map<String, List<Attribute>> attributesMap = new HashMap();
     private List<List<String>> actions = new ArrayList<>();
 
-    public Grammar getGrammar() {
+    public Grammar getGrammar() throws GrammarException {
         return new Grammar(rules, start);
     }
 
-    public FullGrammar getFullGrammar() {
+    public FullGrammar getFullGrammar() throws GrammarException {
         return new FullGrammar(rules, start, terminalsMap, nonTerminalsMap, attributesMap, actions);
     }
 
