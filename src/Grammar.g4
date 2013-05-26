@@ -15,13 +15,17 @@ grammar Grammar;
     private List<Rule> rules = new ArrayList<>();
     private String start = null;
 
-    private List<List<String>> actions = new ArrayList<>();
     private Map<String, String> terminalsMap = new HashMap<>();
     private Map<String, String> nonTerminalsMap = new HashMap<>();
     private Map<String, List<Attribute>> attributesMap = new HashMap();
+    private List<List<String>> actions = new ArrayList<>();
 
     public Grammar getGrammar() {
-        return new Grammar(rules.toArray(new Rule[0]), start);
+        return new Grammar(rules, start);
+    }
+
+    public FullGrammar getFullGrammar() {
+        return new FullGrammar(rules, start, terminalsMap, nonTerminalsMap, attributesMap, actions);
     }
 
     public List<List<String>> getActions() {
@@ -251,7 +255,7 @@ ruleSignature returns [Rule rule]
         }
     )*
     {
-        $rule = new Rule(leftSide, rightSide.toArray(new String[0]));
+        $rule = new Rule(leftSide, rightSide);
     }
     ;
 

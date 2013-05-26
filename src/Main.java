@@ -14,25 +14,24 @@ public class Main {
     private static final String FAIL_MESSAGE = TESTS_FORMAT + " failed: %s\n";
 
     public static void main(String[] args) {
+        final String dirName = "./booleanExpressions/";
         final String fileName = "booleanExpressions";
 
         try {
-            System.out.printf(START_MESSAGE, fileName);
+            System.out.printf(START_MESSAGE, dirName + fileName);
 
-            CharStream input = new ANTLRInputStream(new FileInputStream(fileName + GRAMMAR_FILE_EXTENSION));
+            CharStream input = new ANTLRInputStream(new FileInputStream(dirName + fileName + GRAMMAR_FILE_EXTENSION));
             GrammarLexer lexer = new GrammarLexer(input);
 
             GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
             parser.file();
 
-            Grammar grammar = parser.getGrammar();
-            List<List<String>> a = parser.getActions();
-            Map<String, List<Attribute>> b = parser.getAttributesMap();
-            //new ParserGenerator(grammar).generate();
+            FullGrammar grammar = parser.getFullGrammar();
+            //new ParserGenerator(grammar, dirName, fileName).generateSourceFiles();
 
-            System.out.printf(SUCCESS_MESSAGE, fileName);
+            System.out.printf(SUCCESS_MESSAGE, dirName + fileName);
         } catch (Exception e) {
-            System.err.printf(FAIL_MESSAGE, fileName, e.getMessage());
+            System.err.printf(FAIL_MESSAGE, dirName + fileName, e.getMessage());
         }
     }
 }

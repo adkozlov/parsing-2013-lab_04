@@ -12,7 +12,8 @@
     E' ExpressionContinuation { boolean value }
     T Term { boolean value }
     T' TermContinuation { boolean value }
-    X NegationOrVariableOrExpression { boolean value }
+    X MaybeNegation { boolean value }
+    Y VariableOrExpression { boolean value }
 }
 
 @start = E
@@ -30,11 +31,11 @@
         "false"
     }
 
-    T -> B T' {
+    T -> X T' {
         "$0.value && $1.value"
     }
 
-    T' -> '&' B T' {
+    T' -> '&' X T' {
         "$1.value && $2.value"
     }
 
@@ -46,11 +47,15 @@
         "!$1.value"
     }
 
-    X -> 'bool' {
+    X -> Y {
         "$0.value"
     }
 
-    X -> '(' E ')' {
+    Y -> 'bool' {
+        "$0.value"
+    }
+
+    Y -> '(' E ')' {
         "$1.value"
     }
 }
