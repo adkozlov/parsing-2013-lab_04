@@ -19,8 +19,8 @@ public class Main {
     private static final String FAIL_MESSAGE = TESTS_FORMAT + " failed: %s\n";
 
     public static void main(String[] args) {
-        final String dirName = "./booleanExpressions/";
         final String fileName = "booleanExpressions";
+        final String dirName = "./src/" + fileName + "/";
 
         try {
             System.out.printf(START_MESSAGE, dirName + fileName);
@@ -32,24 +32,23 @@ public class Main {
             parser.file();
 
             FullGrammar grammar = parser.getFullGrammar();
-            //new ParserGenerator(grammar, dirName, fileName).generateSourceFiles();
+            new ParserGenerator(grammar, dirName, fileName).generateSourceFiles();
 
-            print(grammar);
+            showParseTable(grammar);
             System.out.printf(SUCCESS_MESSAGE, dirName + fileName);
         } catch (Exception e) {
             System.err.printf(FAIL_MESSAGE, dirName + fileName, e.getMessage());
         }
     }
 
-    private static void print(FullGrammar grammar) {
-        String[] header = new String[grammar.getTerminals().size() + 4];
+    private static void showParseTable(FullGrammar grammar) {
+        String[] header = new String[grammar.getTerminals().size() + 3];
         header[0] = "";
         header[1] = "FIRST";
         header[2] = "FOLLOW";
         for (int i = 0; i < grammar.getTerminals().size(); i++) {
             header[i + 3] = grammar.getTerminals().get(i);
         }
-        header[grammar.getTerminals().size() + 3] = Grammar.EOF;
 
         Object[][] data = new Object[grammar.getNonTerminals().size()][];
         for (int i = 0; i < grammar.getNonTerminals().size(); i++) {
@@ -60,7 +59,7 @@ public class Main {
                 first.add("ε");
             }
 
-            Object[] tableRow = new Object[grammar.getTerminals().size() + 4];
+            Object[] tableRow = new Object[grammar.getTerminals().size() + 3];
             tableRow[0] = nonTerminal;
             tableRow[1] = replaceBracketsWithBraces(first);
             tableRow[2] = replaceBracketsWithBraces(follow);
@@ -72,10 +71,6 @@ public class Main {
             }
 
             data[i] = tableRow;
-        }
-
-        for (String terminal : grammar.getTerminals()) {
-            header[grammar.getTerminalIndex(terminal) + 3] = terminal;
         }
 
         JTable table = new JTable(data, header) {

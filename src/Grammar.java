@@ -13,10 +13,6 @@ public class Grammar {
     final protected List<Set<String>> firsts = new ArrayList<>();
     final protected List<Set<String>> follows = new ArrayList<>();
 
-    public List<String> getNonTerminals() {
-        return nonTerminals;
-    }
-
     public List<Boolean> getNullables() {
         return nullables;
     }
@@ -29,8 +25,8 @@ public class Grammar {
         return follows;
     }
 
-    public Integer getNonTerminalIndex(String nonTerminal) {
-        return nonTerminalIndices.get(nonTerminal);
+    public List<String> getNonTerminals() {
+        return nonTerminals;
     }
 
     public Grammar(List<Rule> rules, String start, List<String> nonTerminals, Map<String, Integer> nonTerminalIndices) {

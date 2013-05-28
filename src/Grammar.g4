@@ -143,7 +143,7 @@ terminal
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
         {
-            attributesMap.put(id, $attributes.attrs);
+            attributesMap.put(terminalsMap.get(id), $attributes.attrs);
         }
     )? WS
     ;
@@ -212,7 +212,7 @@ nonTerminal
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
         {
-            attributesMap.put(id, $attributes.attrs);
+            attributesMap.put(nonTerminalsMap.get(id), $attributes.attrs);
         }
     )? WS
     ;

@@ -6,4 +6,12 @@ public class Attribute {
         this.type = type;
         this.name = name;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

@@ -2,10 +2,10 @@ import java.util.*;
 
 public class FullGrammar extends Grammar {
 
-    final private List<String> terminalsList;
+    final private List<String> terminals;
 
-    final private Map<String, String> terminals;
-    final private Map<String, String> nonTerminals;
+    final private Map<String, String> terminalsMap;
+    final private Map<String, String> nonTerminalsMap;
     final private Map<String, List<Attribute>> attributes;
     final private List<List<String>> actions;
 
@@ -13,19 +13,17 @@ public class FullGrammar extends Grammar {
 
     final private List<List<Integer>> table;
 
-    public Integer getTerminalIndex(String terminal) {
-        return  terminalIndices.get(terminal);
-    }
-
-    public FullGrammar(List<Rule> rules, String start, List<String> terminalsList, Map<String, String> terminals, Map<String, Integer> terminalIndices, List<String> nonTerminalsList, Map<String, String> nonTerminals, Map<String, Integer> nonTerminalIndices, Map<String, List<Attribute>> attributes, List<List<String>> actions) throws GrammarException {
-        super(rules, start, nonTerminalsList, nonTerminalIndices);
-        this.terminalsList = terminalsList;
+    public FullGrammar(List<Rule> rules, String start, List<String> terminals, Map<String, String> terminalsMap, Map<String, Integer> terminalIndices, List<String> nonTerminals, Map<String, String> nonTerminalsMap, Map<String, Integer> nonTerminalIndices, Map<String, List<Attribute>> attributes, List<List<String>> actions) throws GrammarException {
+        super(rules, start, nonTerminals, nonTerminalIndices);
         this.terminals = terminals;
+        this.terminalsMap = terminalsMap;
         this.terminalIndices = terminalIndices;
-        this.nonTerminals = nonTerminals;
+        this.nonTerminalsMap = nonTerminalsMap;
         this.attributes = attributes;
         this.actions = actions;
 
+        this.terminals.add(Grammar.EOF);
+        this.terminalsMap.put(Grammar.EOF, "EOF");
         this.terminalIndices.put(Grammar.EOF, terminalIndices.size());
 
         table = new ArrayList<>();
@@ -46,7 +44,27 @@ public class FullGrammar extends Grammar {
     }
 
     public List<String> getTerminals() {
-        return new ArrayList<>(terminals.keySet());
+        return terminals;
+    }
+
+    public Map<String, String> getTerminalsMap() {
+        return terminalsMap;
+    }
+
+    public Map<String, String> getNonTerminalsMap() {
+        return nonTerminalsMap;
+    }
+
+    public Map<String, List<Attribute>> getAttributes() {
+        return attributes;
+    }
+
+    public List<Attribute> getAttributesList(String symbol) {
+        if (attributes.containsKey(symbol)) {
+            return attributes.get(symbol);
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     private void fillTable() throws GrammarException {
@@ -72,7 +90,7 @@ public class FullGrammar extends Grammar {
     private void setValue(int leftIndex, int rightIndex, int ruleIndex) throws GrammarException{
         List<Integer> row = table.get(leftIndex);
         if (row.get(rightIndex) == ruleIndex) {
-            return;
+
         } else if (row.get(rightIndex) == -1) {
             row.set(rightIndex, ruleIndex);
         } else {
