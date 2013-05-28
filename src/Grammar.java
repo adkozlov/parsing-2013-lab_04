@@ -13,6 +13,10 @@ public class Grammar {
     final protected List<Set<String>> firsts = new ArrayList<>();
     final protected List<Set<String>> follows = new ArrayList<>();
 
+    public String getStart() {
+        return start;
+    }
+
     public List<Boolean> getNullables() {
         return nullables;
     }

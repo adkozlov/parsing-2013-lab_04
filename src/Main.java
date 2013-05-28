@@ -34,7 +34,7 @@ public class Main {
             FullGrammar grammar = parser.getFullGrammar();
             new ParserGenerator(grammar, dirName, fileName).generateSourceFiles();
 
-            showParseTable(grammar);
+            //showParseTable(grammar);
             System.out.printf(SUCCESS_MESSAGE, dirName + fileName);
         } catch (Exception e) {
             System.err.printf(FAIL_MESSAGE, dirName + fileName, e.getMessage());
