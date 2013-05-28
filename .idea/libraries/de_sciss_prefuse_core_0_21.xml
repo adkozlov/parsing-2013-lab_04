@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="de.sciss:prefuse-core:0.21" type="repository">
+    <properties maven-id="de.sciss:prefuse-core:0.21" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/prefuse-core-0.21.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

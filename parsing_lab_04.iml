@@ -16,6 +16,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="de.sciss:prefuse-core:0.21" level="project" />
   </component>
 </module>
 
