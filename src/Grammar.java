@@ -3,7 +3,7 @@ import java.util.*;
 public class Grammar {
 
     final public static String EOF = "$";
-    protected final List<Rule> rules;
+    private final List<Rule> rules;
     final private String start;
 
     final private List<String> nonTerminals;
@@ -15,6 +15,14 @@ public class Grammar {
 
     public String getStart() {
         return start;
+    }
+
+    public List<Rule> getRules() {
+        return rules;
+    }
+
+    public Map<String, Integer> getNonTerminalIndices() {
+        return nonTerminalIndices;
     }
 
     public List<Boolean> getNullables() {

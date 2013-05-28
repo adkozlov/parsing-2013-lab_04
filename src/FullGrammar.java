@@ -43,12 +43,20 @@ public class FullGrammar extends Grammar {
         return table;
     }
 
+    public List<List<String>> getActions() {
+        return actions;
+    }
+
     public List<String> getTerminals() {
         return terminals;
     }
 
     public Map<String, String> getTerminalsMap() {
         return terminalsMap;
+    }
+
+    public Map<String, Integer> getTerminalIndices() {
+        return terminalIndices;
     }
 
     public Map<String, String> getNonTerminalsMap() {
@@ -68,8 +76,8 @@ public class FullGrammar extends Grammar {
     }
 
     private void fillTable() throws GrammarException {
-        for (int i = 0; i < rules.size(); i++) {
-            Rule rule = rules.get(i);
+        for (int i = 0; i < getRules().size(); i++) {
+            Rule rule = getRules().get(i);
             int leftIndex = nonTerminalIndices.get(rule.getLeftSide());
 
             for (String symbol : first(rule.getRightSide())) {
