@@ -2,6 +2,8 @@ import java.util.*;
 
 public class FullGrammar extends Grammar {
 
+    final private List<String> terminalsList;
+
     final private Map<String, String> terminals;
     final private Map<String, String> nonTerminals;
     final private Map<String, List<Attribute>> attributes;
@@ -11,18 +13,20 @@ public class FullGrammar extends Grammar {
 
     final private List<List<Integer>> table;
 
-    public FullGrammar(List<Rule> rules, String start, Map<String, String> terminals, Map<String, String> nonTerminals, Map<String, List<Attribute>> attributes, List<List<String>> actions) throws GrammarException {
-        super(rules, start);
+    public Integer getTerminalIndex(String terminal) {
+        return  terminalIndices.get(terminal);
+    }
+
+    public FullGrammar(List<Rule> rules, String start, List<String> terminalsList, Map<String, String> terminals, Map<String, Integer> terminalIndices, List<String> nonTerminalsList, Map<String, String> nonTerminals, Map<String, Integer> nonTerminalIndices, Map<String, List<Attribute>> attributes, List<List<String>> actions) throws GrammarException {
+        super(rules, start, nonTerminalsList, nonTerminalIndices);
+        this.terminalsList = terminalsList;
         this.terminals = terminals;
+        this.terminalIndices = terminalIndices;
         this.nonTerminals = nonTerminals;
         this.attributes = attributes;
         this.actions = actions;
 
-        terminalIndices = new HashMap<>();
-        for (String terminal : terminals.keySet()) {
-            terminalIndices.put(terminal, terminalIndices.size());
-        }
-        terminalIndices.put(Grammar.EOF, terminalIndices.size());
+        this.terminalIndices.put(Grammar.EOF, terminalIndices.size());
 
         table = new ArrayList<>();
         for (Iterator<String> i = nonTerminalIndices.keySet().iterator(); i.hasNext(); i.next()) {

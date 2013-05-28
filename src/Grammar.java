@@ -29,20 +29,15 @@ public class Grammar {
         return follows;
     }
 
-    public Grammar(List<Rule> rules, String start) {
+    public Integer getNonTerminalIndex(String nonTerminal) {
+        return nonTerminalIndices.get(nonTerminal);
+    }
+
+    public Grammar(List<Rule> rules, String start, List<String> nonTerminals, Map<String, Integer> nonTerminalIndices) {
         this.rules = rules;
         this.start = start;
-
-        Set<String> leftSides = new TreeSet<>();
-        for (Rule rule : rules) {
-            leftSides.add(rule.getLeftSide());
-        }
-        nonTerminals = new ArrayList<>(leftSides);
-
-        nonTerminalIndices = new HashMap<>();
-        for (String nonTerminal : nonTerminals) {
-            nonTerminalIndices.put(nonTerminal, nonTerminalIndices.size());
-        }
+        this.nonTerminals = nonTerminals;
+        this.nonTerminalIndices = nonTerminalIndices;
 
         fillNullables();
         fillFirsts();

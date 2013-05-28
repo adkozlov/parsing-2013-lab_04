@@ -6,7 +6,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.io.FileInputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -35,19 +34,22 @@ public class Main {
             FullGrammar grammar = parser.getFullGrammar();
             //new ParserGenerator(grammar, dirName, fileName).generateSourceFiles();
 
-            System.out.printf(SUCCESS_MESSAGE, dirName + fileName);
-
             print(grammar);
+            System.out.printf(SUCCESS_MESSAGE, dirName + fileName);
         } catch (Exception e) {
             System.err.printf(FAIL_MESSAGE, dirName + fileName, e.getMessage());
         }
     }
 
     private static void print(FullGrammar grammar) {
-        List<String> terminals = new ArrayList<>(grammar.getTerminals());
-        terminals.add(0, "FOLLOW");
-        terminals.add(0, "FIRST");
-        terminals.add(0, "");
+        String[] header = new String[grammar.getTerminals().size() + 4];
+        header[0] = "";
+        header[1] = "FIRST";
+        header[2] = "FOLLOW";
+        for (int i = 0; i < grammar.getTerminals().size(); i++) {
+            header[i + 3] = grammar.getTerminals().get(i);
+        }
+        header[grammar.getTerminals().size() + 3] = Grammar.EOF;
 
         Object[][] data = new Object[grammar.getNonTerminals().size()][];
         for (int i = 0; i < grammar.getNonTerminals().size(); i++) {
@@ -58,20 +60,25 @@ public class Main {
                 first.add("ε");
             }
 
-            List<Object> tableRow = new ArrayList<>();
-            tableRow.add(nonTerminal);
-            tableRow.add(replaceBracketsWithBraces(first));
-            tableRow.add(replaceBracketsWithBraces(follow));
+            Object[] tableRow = new Object[grammar.getTerminals().size() + 4];
+            tableRow[0] = nonTerminal;
+            tableRow[1] = replaceBracketsWithBraces(first);
+            tableRow[2] = replaceBracketsWithBraces(follow);
 
             List<Integer> row = grammar.getTable().get(i);
-            for (int j : row) {
-                tableRow.add(j == -1 ? "" : j + 1);
+            for (int j = 0; j < row.size(); j++) {
+                int ruleIndex = row.get(j);
+                tableRow[j + 3] = (ruleIndex == -1) ? "" : ruleIndex + 1;
             }
 
-            data[i] = tableRow.toArray();
+            data[i] = tableRow;
         }
 
-        JTable table = new JTable(data, terminals.toArray(new Object[terminals.size()])) {
+        for (String terminal : grammar.getTerminals()) {
+            header[grammar.getTerminalIndex(terminal) + 3] = terminal;
+        }
+
+        JTable table = new JTable(data, header) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -86,7 +93,7 @@ public class Main {
 
         JScrollPane pane = new JScrollPane(table);
 
-        JFrame frame = new JFrame();
+        JFrame frame = new JFrame("Parse table");
         frame.getContentPane().setLayout(new FlowLayout());
         frame.getContentPane().add(pane);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

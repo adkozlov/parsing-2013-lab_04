@@ -15,17 +15,23 @@ grammar Grammar;
     private List<Rule> rules = new ArrayList<>();
     private String start = null;
 
+    private List<String> terminalsList = new ArrayList<>();
     private Map<String, String> terminalsMap = new HashMap<>();
+    private Map<String, Integer> terminalIndices = new HashMap<>();
+
+    private List<String> nonTerminalsList = new ArrayList<>();
     private Map<String, String> nonTerminalsMap = new HashMap<>();
+    private Map<String, Integer> nonTerminalIndices = new HashMap<>();
+
     private Map<String, List<Attribute>> attributesMap = new HashMap();
     private List<List<String>> actions = new ArrayList<>();
 
     public Grammar getGrammar() throws GrammarException {
-        return new Grammar(rules, start);
+        return new Grammar(rules, start, nonTerminalsList, nonTerminalIndices);
     }
 
     public FullGrammar getFullGrammar() throws GrammarException {
-        return new FullGrammar(rules, start, terminalsMap, nonTerminalsMap, attributesMap, actions);
+        return new FullGrammar(rules, start, terminalsList, terminalsMap, terminalIndices, nonTerminalsList, nonTerminalsMap, nonTerminalIndices, attributesMap, actions);
     }
 
     public List<List<String>> getActions() {
@@ -131,7 +137,9 @@ terminal
         id = $TerminalId.text.replaceAll("\'", "");
         String desc = $description.text;
 
+        terminalsList.add(id);
         terminalsMap.put(id, desc);
+        terminalIndices.put(id, terminalIndices.size());
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
         {
@@ -198,7 +206,9 @@ nonTerminal
         id = $nonTerminalId.text;
         String desc = $description.text;
 
+        nonTerminalsList.add(id);
         nonTerminalsMap.put(id, desc);
+        nonTerminalIndices.put(id, nonTerminalIndices.size());
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
         {
