@@ -4,7 +4,8 @@
     '!' NOT_OPERATOR
     '(' LEFT_PARENTHESIS
     ')' RIGHT_PARENTHESIS
-    'bool' VARIABLE { boolean value }
+    'true' TRUE { boolean value = $true$ }
+    'false' FALSE { boolean value = $false$ }
 }
 
 @nonTerminals {
@@ -51,7 +52,11 @@
         "$0.value"
     }
 
-    Y -> 'bool' {
+    Y -> 'true' {
+        "$0.value"
+    }
+
+    Y -> 'false' {
         "$0.value"
     }
 

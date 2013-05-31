@@ -32,7 +32,7 @@ public class Main {
             parser.file();
 
             FullGrammar grammar = parser.getFullGrammar();
-            new ParserGenerator(grammar, dirName, fileName).generateSourceFiles();
+            new SourceFilesGenerator(grammar, dirName, fileName).generateSourceFiles();
 
             //showParseTable(grammar);
             System.out.printf(SUCCESS_MESSAGE, dirName + fileName);

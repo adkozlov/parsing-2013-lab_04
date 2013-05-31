@@ -172,10 +172,28 @@ attributes returns [List<Attribute> attrs]
     ;
 
 attribute returns [Attribute attr]
+@init {
+    String type = null;
+    String name = null;
+    String value = null;
+}
     :   Type WS lowerId
     {
-        $attr = new Attribute($Type.text, $lowerId.text);
+        type = $Type.text;
+        name = $lowerId.text;
     }
+    ( WS EQUALS WS Value
+        {
+            value = $Value.text.replaceAll("\\\$", "");
+        }
+    )?
+    {
+        $attr = new Attribute(type, name, value != null ? value : "");
+    }
+    ;
+
+Value
+    :   '$' ( ~'$' )+ '$'
     ;
 
 Type

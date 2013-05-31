@@ -1,10 +1,11 @@
 public class Attribute {
 
-    final private String type, name;
+    final private String type, name, value;
 
-    public Attribute(String type, String name) {
+    public Attribute(String type, String name, String value) {
         this.type = type;
         this.name = name;
+        this.value = value;
     }
 
     public String getType() {
@@ -13,5 +14,9 @@ public class Attribute {
 
     public String getName() {
         return name;
+    }
+
+    public String getValue() {
+        return value;
     }
 }
