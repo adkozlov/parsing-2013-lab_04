@@ -72,8 +72,16 @@ public class SourceFilesGenerator {
                     pw.printf("\t\tthis.%s = %s;\n", attribute.getName(), attribute.getName());
                 }
             }
-            pw.printf("\t}\n" +
-                    "}\n");
+            pw.printf("\t}\n");
+
+            for (Attribute attribute : attributes) {
+                pw.printf("\n" +
+                        "\tpublic %s get_%s() {\n" +
+                        "\t\treturn %s;\n" +
+                        "\t}\n", attribute.getType(), attribute.getName(), attribute.getName());
+            }
+
+            pw.printf("}\n");
 
             pw.close();
         }
@@ -181,11 +189,13 @@ public class SourceFilesGenerator {
         pw.close();
 
         for (Map.Entry<String, String> nonTerminal : grammar.getNonTerminalsMap().entrySet()) {
-            pw = new PrintWriter(dirName + nonTerminal.getValue() + "_ParseTree" + FILES_EXTENSION);
+            String description = nonTerminal.getValue();
+            pw = new PrintWriter(dirName + description + "_ParseTree" + FILES_EXTENSION);
             pw.printf("package %s;\n\n" +
-                    "public class %s_ParseTree extends %sParseTree {\n\n", pkgName, nonTerminal.getValue(), fileName);
+                    "import java.util.List;\n\n" +
+                    "public class %s_ParseTree extends %sParseTree {\n\n", pkgName, description, fileName);
 
-            List<Attribute> attributes = grammar.getAttributes().get(nonTerminal.getValue());
+            List<Attribute> attributes = grammar.getAttributes().get(description);
             for (ListIterator<Attribute> iterator = attributes.listIterator(); iterator.hasNext();) {
                 Attribute attribute = iterator.next();
                 pw.printf("\tprivate %s %s;\n", attribute.getType(), attribute.getName());
@@ -198,7 +208,7 @@ public class SourceFilesGenerator {
             pw.printf("\tpublic %s_ParseTree(" +
                     "%sParseTree... children) {\n" +
                     "\t\tsuper(children);\n" +
-                    "\t}\n", nonTerminal.getValue(), fileName);
+                    "\t}\n", description, fileName);
 
             for (Attribute attribute : attributes) {
                 String variable = attribute.getName();
@@ -206,10 +216,64 @@ public class SourceFilesGenerator {
                 pw.printf("\n" +
                         "\tpublic %s get_%s() {\n" +
                         "\t\tif (%s == null) {\n" +
-                        "\n" +
-                        "\t\t}\n\n" +
+                        "\t\t\tList<%sParseTree> children = getChildren();\n" +
+                        "\n", attribute.getType(), variable, variable, fileName);
+
+                List<RuleConditions> conditionsList = grammar.getActions().get(nonTerminal.getKey());
+                for (ListIterator<RuleConditions> conditionsIterator = conditionsList.listIterator(); conditionsIterator.hasNext();) {
+                    RuleConditions ruleConditions = conditionsIterator.next();
+                    List<Condition> conditions = ruleConditions.getConditions();
+                    int ruleId = ruleConditions.getRuleId();
+                    List<String> rightSide = grammar.getRules().get(ruleId).getRightSide();
+
+                    String shift = "\t\t\t";
+                    pw.printf(shift + "if ((children.size() == %d)", rightSide.size());
+                    for (int id = 0; id < rightSide.size(); id++) {
+                        String symbol = rightSide.get(id);
+                        String type;
+
+                        if (grammar.isTerminal(symbol)) {
+                            type = "Terminal";
+                        } else {
+                            type = grammar.getNonTerminalsMap().get(symbol) + "_";
+                        }
+                        type += "ParseTree";
+
+                        pw.printf(" && (children.get(%d) instanceof %s)", id, type);
+
+                        if (type.startsWith("Terminal")) {
+                            pw.printf(" && (((TerminalParseTree) children.get(%d)).getToken() instanceof %s)", id, grammar.getTerminalsMap().get(symbol) + "_Token");
+                        }
+                    }
+                    pw.printf(") {\n");
+
+                    if (conditions.size() == 1) {
+                        pw.printf(shift + "\t%s = %s;\n", variable, makeActionLine(conditions.get(0).getValue(), variable, rightSide));
+                    } else {
+                        for (ListIterator<Condition> iterator = ruleConditions.getConditions().listIterator(); iterator.hasNext();) {
+                            Condition condition = iterator.next();
+
+                            if (iterator.hasNext()) {
+                                pw.printf(shift + "\tif (%s) {\n" +
+                                        shift + "\t\t%s = %s;\n" +
+                                        shift + "\t} else ", makeActionLine(condition.getCondition(), variable, rightSide), variable, makeActionLine(condition.getValue(), variable, rightSide));
+                            } else {
+                                pw.printf(" {\n" +
+                                        shift + "\t\t%s = %s;\n" +
+                                        shift + "\t}\n", variable, makeActionLine(condition.getValue(), variable, rightSide));
+                            }
+                        }
+                    }
+
+                    pw.printf(shift + "}\n");
+                    if (conditionsIterator.hasNext()) {
+                        pw.printf("\n");
+                    }
+                }
+
+                pw.printf("\t\t}\n\n" +
                         "\t\treturn %s;\n" +
-                        "\t}\n", attribute.getType(), variable, variable, variable);
+                        "\t}\n", variable);
             }
 
             pw.printf("}\n");
@@ -224,8 +288,11 @@ public class SourceFilesGenerator {
         pw.printf("\tpublic TerminalParseTree(final %sToken token) {\n" +
                 "\t\tsuper();\n" +
                 "\t\tthis.token = token;\n" +
+                "\t}\n\n" +
+                "\tpublic %sToken getToken() {\n" +
+                "\t\treturn token;\n" +
                 "\t}\n" +
-                "}\n", fileName);
+                "}\n", fileName, fileName);
         pw.close();
     }
 
@@ -233,7 +300,7 @@ public class SourceFilesGenerator {
         PrintWriter pw = new PrintWriter(dirName + fileName + "Parser" + FILES_EXTENSION);
         pw.printf("package %s;\n\n" +
                 "import java.io.InputStream;\n" +
-                "import java.text.ParseException;\n" +
+                "import java.text.ParseException;\n\n" +
                 "public class %sParser {\n\n" +
                 "\tprivate %sLexicalAnalyzer lexicalAnalyzer;\n\n", pkgName, fileName, fileName);
 
@@ -356,18 +423,17 @@ public class SourceFilesGenerator {
         return "arg_" + string + current;
     }
 
-    private String makeActionLine(String template, List<String> variables, List<String> rightSide) {
+    private String makeActionLine(String template, String variable, List<String> rightSide) {
         String result = template.trim();
 
-        int id = 0;
-        for (String var : variables) {
-            String variable = var;
+        for (int id = 0; id < rightSide.size(); id++) {
+            String description = grammar.getNonTerminalsMap().get(rightSide.get(id));
 
-            if (grammar.isTerminal(rightSide.get(id))) {
-                variable += "_Token";
+            if (description != null) {
+                result = result.replace(String.format("$%d.%s", id, variable), String.format("((%s_ParseTree) children.get(%d)).get_%s()", description, id, variable));
+            } else {
+                result = result.replace(String.format("$%d.%s", id, variable), String.format("((%s_Token) ((TerminalParseTree) children.get(%d)).getToken()).get_%s()", grammar.getTerminalsMap().get(rightSide.get(id)), id, variable));
             }
-
-            result = result.replace(String.format("$%d", id++), variable);
         }
 
         return result;

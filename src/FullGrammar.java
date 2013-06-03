@@ -7,13 +7,13 @@ public class FullGrammar extends Grammar {
     final private Map<String, String> terminalsMap;
     final private Map<String, String> nonTerminalsMap;
     final private Map<String, List<Attribute>> attributes;
-    final private Map<String, List<List<Condition>>> actions;
+    final private Map<String, List<RuleConditions>> actions;
 
     final private Map<String, Integer> terminalIndices;
 
     final private List<List<Integer>> table;
 
-    public FullGrammar(List<Rule> rules, String start, List<String> terminals, Map<String, String> terminalsMap, Map<String, Integer> terminalIndices, List<String> nonTerminals, Map<String, String> nonTerminalsMap, Map<String, Integer> nonTerminalIndices, Map<String, List<Attribute>> attributes, Map<String, List<List<Condition>>> actions) throws GrammarException {
+    public FullGrammar(List<Rule> rules, String start, List<String> terminals, Map<String, String> terminalsMap, Map<String, Integer> terminalIndices, List<String> nonTerminals, Map<String, String> nonTerminalsMap, Map<String, Integer> nonTerminalIndices, Map<String, List<Attribute>> attributes, Map<String, List<RuleConditions>> actions) throws GrammarException {
         super(rules, start, nonTerminals, nonTerminalIndices);
         this.terminals = terminals;
         this.terminalsMap = terminalsMap;
@@ -43,7 +43,7 @@ public class FullGrammar extends Grammar {
         return table;
     }
 
-    public Map<String, List<List<Condition>>> getActions() {
+    public Map<String, List<RuleConditions>> getActions() {
         return actions;
     }
 

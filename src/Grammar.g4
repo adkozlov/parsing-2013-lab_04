@@ -4,12 +4,6 @@ grammar Grammar;
     import java.util.*;
 }
 
-@rulecatch {
-    catch(RecognitionException e) {
-        throw new GrammarException(e.getMessage(), e.getCause());
-   }
-}
-
 @members {
 
     private List<Rule> rules = new ArrayList<>();
@@ -24,7 +18,7 @@ grammar Grammar;
     private Map<String, Integer> nonTerminalIndices = new HashMap<>();
 
     private Map<String, List<Attribute>> attributesMap = new HashMap();
-    private Map<String, List<List<Condition>>> actions = new HashMap<>();
+    private Map<String, List<RuleConditions>> actions = new HashMap<>();
 
     public Grammar getGrammar() throws GrammarException {
         return new Grammar(rules, start, nonTerminalsList, nonTerminalIndices);
@@ -32,14 +26,6 @@ grammar Grammar;
 
     public FullGrammar getFullGrammar() throws GrammarException {
         return new FullGrammar(rules, start, terminalsList, terminalsMap, terminalIndices, nonTerminalsList, nonTerminalsMap, nonTerminalIndices, attributesMap, actions);
-    }
-
-    public Map<String, List<List<Condition>>> getActions() {
-        return actions;
-    }
-
-    public Map<String, List<Attribute>> getAttributesMap() {
-        return attributesMap;
     }
 }
 
@@ -143,10 +129,10 @@ terminal
     :   TerminalId WS description
     {
         id = $TerminalId.text.replaceAll("\'", "");
-        String desc = $description.text;
+        String description = $description.text;
 
         terminalsList.add(id);
-        terminalsMap.put(id, desc);
+        terminalsMap.put(id, description);
         terminalIndices.put(id, terminalIndices.size());
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
@@ -236,7 +222,7 @@ nonTerminal
         nonTerminalsMap.put(id, description);
         nonTerminalIndices.put(id, nonTerminalIndices.size());
 
-        actions.put(description, new ArrayList<List<Condition>>());
+        actions.put(id, new ArrayList<RuleConditions>());
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
         {
@@ -269,12 +255,12 @@ rules
         ruleSignature WS
         {
             rules.add($ruleSignature.rule);
-            nonTerminal = nonTerminalsMap.get($ruleSignature.rule.getLeftSide());
+            nonTerminal = $ruleSignature.rule.getLeftSide();
         }
         ruleImplementation WS
         {
-            List<List<Condition>> conditionsLists = actions.get(nonTerminal);
-            conditionsLists.add($ruleImplementation.conditions);
+            List<RuleConditions> conditionsLists = actions.get(nonTerminal);
+            conditionsLists.add(new RuleConditions($ruleImplementation.conditions, rules.size() - 1));
             actions.put(nonTerminal, conditionsLists);
         }
     )+ RIGHT_BRACE

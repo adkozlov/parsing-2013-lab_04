@@ -36,7 +36,10 @@
     }
 
     T -> X T' {
-        #$0.value && $1.value#
+        if "$0.value == false"
+            #false#
+        else
+            #$0.value && $1.value#
     }
 
     T' -> '&' X T' {
