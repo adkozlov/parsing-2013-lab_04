@@ -24,7 +24,7 @@ grammar Grammar;
     private Map<String, Integer> nonTerminalIndices = new HashMap<>();
 
     private Map<String, List<Attribute>> attributesMap = new HashMap();
-    private List<List<String>> actions = new ArrayList<>();
+    private Map<String, List<List<Condition>>> actions = new HashMap<>();
 
     public Grammar getGrammar() throws GrammarException {
         return new Grammar(rules, start, nonTerminalsList, nonTerminalIndices);
@@ -34,7 +34,7 @@ grammar Grammar;
         return new FullGrammar(rules, start, terminalsList, terminalsMap, terminalIndices, nonTerminalsList, nonTerminalsMap, nonTerminalIndices, attributesMap, actions);
     }
 
-    public List<List<String>> getActions() {
+    public Map<String, List<List<Condition>>> getActions() {
         return actions;
     }
 
@@ -102,6 +102,14 @@ ARROW
 
 EQUALS
     :   '='
+    ;
+
+IF
+    :   'if'
+    ;
+
+ELSE
+    :   'else'
     ;
 
 file
@@ -184,7 +192,7 @@ attribute returns [Attribute attr]
     }
     ( WS EQUALS WS Value
         {
-            value = $Value.text.replaceAll("\\\$", "");
+            value = $Value.text.replaceAll("#", "");
         }
     )?
     {
@@ -193,14 +201,14 @@ attribute returns [Attribute attr]
     ;
 
 Value
-    :   '$' ( ~'$' )+ '$'
+    :   '#' ( ~'#' )+ '#'
     ;
 
 Type
-    :   'boolean'
-    |   'int'
-    |   'double'
-    |   'char'
+    :   'Boolean'
+    |   'Integer'
+    |   'Double'
+    |   'Character'
     ;
 
 NON_TERMINALS
@@ -222,11 +230,13 @@ nonTerminal
     :   nonTerminalId WS description
     {
         id = $nonTerminalId.text;
-        String desc = $description.text;
+        String description = $description.text;
 
         nonTerminalsList.add(id);
-        nonTerminalsMap.put(id, desc);
+        nonTerminalsMap.put(id, description);
         nonTerminalIndices.put(id, nonTerminalIndices.size());
+
+        actions.put(description, new ArrayList<List<Condition>>());
     }
     ( WS LEFT_BRACE WS attributes RIGHT_BRACE
         {
@@ -251,15 +261,21 @@ RULES
     ;
 
 rules
+@init {
+    String nonTerminal = null;
+}
     :   SECTION_START RULES WS LEFT_BRACE WS
     (
         ruleSignature WS
         {
             rules.add($ruleSignature.rule);
+            nonTerminal = nonTerminalsMap.get($ruleSignature.rule.getLeftSide());
         }
         ruleImplementation WS
         {
-            actions.add($ruleImplementation.ruleActions);
+            List<List<Condition>> conditionsLists = actions.get(nonTerminal);
+            conditionsLists.add($ruleImplementation.conditions);
+            actions.put(nonTerminal, conditionsLists);
         }
     )+ RIGHT_BRACE
     ;
@@ -292,24 +308,53 @@ rightSideRuleToken
     |   TerminalId
     ;
 
-ruleImplementation returns [List<String> ruleActions]
+ruleImplementation returns [List<Condition> conditions]
 @init {
-    $ruleActions = new ArrayList<>();
+    $conditions = new ArrayList<>();
 }
     :   LEFT_BRACE
-    ( WS Expression
+    ( WS ( Value
         {
-            $ruleActions.add($Expression.text.replaceAll("\"", ""));
+            $conditions.add(new Condition("", $Value.text.replaceAll("#", "")));
         }
+        |   conditionalExpression
+        {
+            $conditions.addAll($conditionalExpression.conditions);
+        }
+        )
     )?
-    ( COMMA WS Expression
+    ( COMMA WS ( Value |
         {
-            $ruleActions.add($Expression.text.replaceAll("\"", ""));
+            $conditions.add(new Condition("", $Value.text.replaceAll("#", "")));
         }
+        conditionalExpression
+        {
+            $conditions.addAll($conditionalExpression.conditions);
+        }
+        )
     )*
     WS RIGHT_BRACE
     ;
 
-Expression
-    :   '\"' ( ~'\"' )+ '\"'
+conditionalExpression returns [List<Condition> conditions]
+@init {
+    $conditions = new ArrayList<>();
+}
+    :   IF WS Statement WS Value WS
+    {
+        $conditions.add(new Condition($Statement.text.replaceAll("\"", ""), $Value.text.replaceAll("#", "")));
+    }
+    ELSE WS ( Value
+        {
+            $conditions.add(new Condition("", $Value.text.replaceAll("#", "")));
+        }
+        |   conditionalExpression
+        {
+            $conditions.addAll($conditionalExpression.conditions);
+        }
+    )
+    ;
+
+Statement
+    :   '"' ( ~'"' )+ '"'
     ;
