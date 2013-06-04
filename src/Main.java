@@ -6,39 +6,26 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 public class Main {
 
-    final private static String GRAMMAR_FILE_EXTENSION = ".g";
+    public static void main(String[] args) throws IOException, GrammarException{
+        String fileName = "booleanExpressions";
+        String dirName = "./src/" + fileName + "/";
 
-    private static final String TESTS_FORMAT = "%s";
-    private static final String START_MESSAGE = TESTS_FORMAT + " started\n";
-    private static final String SUCCESS_MESSAGE = TESTS_FORMAT + " succeeded\n";
-    private static final String FAIL_MESSAGE = TESTS_FORMAT + " failed: %s\n";
+        CharStream input = new ANTLRInputStream(new FileInputStream(dirName + fileName + ".g"));
+        GrammarLexer lexer = new GrammarLexer(input);
 
-    public static void main(String[] args) {
-        final String fileName = "booleanExpressions";
-        final String dirName = "./src/" + fileName + "/";
+        GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
+        parser.file();
 
-        try {
-            System.out.printf(START_MESSAGE, dirName + fileName);
+        FullGrammar grammar = parser.getFullGrammar();
+        new SourceFilesGenerator(grammar, dirName, fileName).generateSourceFiles();
 
-            CharStream input = new ANTLRInputStream(new FileInputStream(dirName + fileName + GRAMMAR_FILE_EXTENSION));
-            GrammarLexer lexer = new GrammarLexer(input);
-
-            GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
-            parser.file();
-
-            FullGrammar grammar = parser.getFullGrammar();
-            new SourceFilesGenerator(grammar, dirName, fileName).generateSourceFiles();
-
-            //showParseTable(grammar);
-            System.out.printf(SUCCESS_MESSAGE, dirName + fileName);
-        } catch (Exception e) {
-            System.err.printf(FAIL_MESSAGE, dirName + fileName, e.getMessage());
-        }
+        //showParseTable(grammar);
     }
 
     private static void showParseTable(FullGrammar grammar) {
