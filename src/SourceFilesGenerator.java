@@ -217,7 +217,7 @@ public class SourceFilesGenerator {
                         "\tpublic %s get_%s() {\n" +
                         "\t\tif (%s == null) {\n" +
                         "\t\t\tList<%sParseTree> children = getChildren();\n" +
-                        "\n", attribute.getType(), variable, variable, fileName);
+                        "\n", attribute.getType(), variable, variable, fileName, description);
 
                 List<RuleConditions> conditionsList = grammar.getActions().get(nonTerminal.getKey());
                 for (ListIterator<RuleConditions> conditionsIterator = conditionsList.listIterator(); conditionsIterator.hasNext();) {

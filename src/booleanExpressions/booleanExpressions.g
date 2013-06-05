@@ -1,4 +1,5 @@
 @terminals {
+    '==' EQ_OPERATOR
     '|' OR_OPERATOR
     '&' AND_OPERATOR
     '!' NOT_OPERATOR
@@ -9,6 +10,8 @@
 }
 
 @nonTerminals {
+    Q Equivalence { Boolean value }
+    Q' EquivalenceContinuation { Boolean value }
     E Expression { Boolean value }
     E' ExpressionContinuation { Boolean value }
     T Term { Boolean value }
@@ -17,9 +20,21 @@
     Y VariableOrExpression { Boolean value }
 }
 
-@start = E
+@start = Q
 
 @rules {
+    Q -> E Q' {
+        #$0.value == $1.value#
+    }
+
+    Q' -> '==' E Q' {
+        #$1.value == $2.value#
+    }
+
+    Q' -> {
+        #true#
+    }
+
     E -> T E' {
         if "$0.value == true"
             #true#
@@ -28,7 +43,10 @@
     }
 
     E' -> '|' T E' {
-        #$1.value || $2.value#
+        if "$1.value == true"
+            #true#
+        else
+            #$1.value || $2.value#
     }
 
     E' -> {
@@ -43,7 +61,10 @@
     }
 
     T' -> '&' X T' {
-        #$1.value && $2.value#
+        if "$1.value == false"
+            #false#
+        else
+            #$1.value && $2.value#
     }
 
     T' -> {
@@ -66,7 +87,7 @@
         #$0.value#
     }
 
-    Y -> '(' E ')' {
+    Y -> '(' Q ')' {
         #$1.value#
     }
 }
